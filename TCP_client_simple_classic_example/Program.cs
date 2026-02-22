@@ -29,7 +29,7 @@ foreach (var word in words)
     Console.WriteLine($"Слово {word}: {translation}");
     response.Clear();
     // имитируем долговременную работу, чтобы одновременно несколько клиентов обрабатывались
-    await Task.Delay(5000);
+    await Task.Delay(2000);
 }
 
 // отправляем маркер завершения подключения - END
