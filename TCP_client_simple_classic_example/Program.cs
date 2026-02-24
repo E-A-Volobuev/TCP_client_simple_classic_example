@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
+using System.Transactions;
 
 // слова для отправки для получения перевода
 var words = new string[] { "red", "yellow", "blue", "green" };
@@ -11,24 +12,31 @@ var stream = tcpClient.GetStream();
 // буфер для входящих данных
 var response = new List<byte>();
 int bytesRead = 10; // для считывания байтов из потока
+await Task.Delay(20000);
 foreach (var word in words)
 {
-    // считываем строку в массив байтов
-    // при отправке добавляем маркер завершения сообщения - \n
-    byte[] data = Encoding.UTF8.GetBytes(word + '\n');
-    // отправляем данные
-    await stream.WriteAsync(data);
-
-    // считываем данные до конечного символа
-    while ((bytesRead = stream.ReadByte()) != '\n')
+    string translation = string.Empty;
+    for (int i=0;i<100000; i++)
     {
-        // добавляем в буфер
-        response.Add((byte)bytesRead);
+        // считываем строку в массив байтов
+        // при отправке добавляем маркер завершения сообщения - \n
+        byte[] data = Encoding.UTF8.GetBytes(word + '\n');
+        // отправляем данные
+        await stream.WriteAsync(data);
+
+        // считываем данные до конечного символа
+        while ((bytesRead = stream.ReadByte()) != '\n')
+        {
+            // добавляем в буфер
+            response.Add((byte)bytesRead);
+        }
+        if(string.IsNullOrEmpty(translation))
+           translation = Encoding.UTF8.GetString(response.ToArray());      
+        response.Clear();
     }
-    var translation = Encoding.UTF8.GetString(response.ToArray());
+
     Console.WriteLine($"Слово {word}: {translation}");
-    response.Clear();
-    // имитируем долговременную работу, чтобы одновременно несколько клиентов обрабатывались
+
     await Task.Delay(2000);
 }
 
